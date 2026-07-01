@@ -1,0 +1,11 @@
+{
+  "name": "conduit-demo-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node.js server for conduit monitoring demo",
+  "main": "app.js",
+  "dependencies": {
+    "@relaystack/conduit-echo": "file:../../relaystack/packages/conduit-echo",
+    "express": "^4.19.2"
+  }
+}

@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use App\Listeners\UserOnlineListener;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Event::listen(Login::class, [UserOnlineListener::class, 'handleLogin']);
+        Event::listen(Logout::class, [UserOnlineListener::class, 'handleLogout']);
     }
 
     /**

@@ -20,6 +20,14 @@ function StatusBadge({ status }: { status: ConnectionStatus }) {
     );
 }
 
+function ActivityDot({ state }: { state: PresenceMember['activityState'] }) {
+    if (state === 'active') {
+        return <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-green-500" />;
+    }
+
+    return <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />;
+}
+
 function UserList({ users }: { users: PresenceMember[] }) {
     return (
         <div className="space-y-3">
@@ -29,6 +37,7 @@ function UserList({ users }: { users: PresenceMember[] }) {
                     className="flex items-center justify-between rounded-xl border border-sidebar-border/70 px-5 py-4 dark:border-sidebar-border"
                 >
                     <div className="flex items-center gap-3">
+                        <ActivityDot state={user.activityState} />
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300">
                             {user.name.charAt(0).toUpperCase()}
                         </div>

@@ -1,15 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import Echo from 'laravel-echo';
-import { io } from 'socket.io-client';
+import { usePresence, type PresenceMember, type ConnectionStatus } from '@/hooks/use-presence';
 import AppLayout from '@/layouts/app-layout';
-
-type PresenceMember = {
-    id: number | string;
-    name: string;
-};
-
-type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
 
 function StatusBadge({ status }: { status: ConnectionStatus }) {
     const color =
@@ -41,9 +32,16 @@ function UserList({ users }: { users: PresenceMember[] }) {
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300">
                             {user.name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                            {user.name}
-                        </span>
+                        <div className="flex flex-col">
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {user.name}
+                            </span>
+                            {user.currentUrl && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {user.currentUrl}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {typeof user.id === 'string' && user.id.startsWith('guest-') && (
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
@@ -59,39 +57,7 @@ function UserList({ users }: { users: PresenceMember[] }) {
 function MonitoringContent() {
     const { auth } = usePage().props;
     const isAuthenticated = !!auth.user;
-    const [users, setUsers] = useState<PresenceMember[]>([]);
-    const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
-
-    useEffect(() => {
-        const echo = new Echo({
-            broadcaster: 'socket.io',
-            client: io,
-            host: import.meta.env.VITE_CONDUIT_IO_URL || `${window.location.protocol}//${window.location.hostname}:6001`,
-            withCredentials: true,
-        });
-
-        const socket = (echo.connector as any).socket;
-
-        socket.on('connect', () => setConnectionStatus('connected'));
-        socket.on('disconnect', () => setConnectionStatus('disconnected'));
-        socket.on('connect_error', () => setConnectionStatus('disconnected'));
-
-        echo.join('monitoring')
-            .here((members: PresenceMember[]) => {
-                setUsers(members);
-            })
-            .joining((member: PresenceMember) => {
-                setUsers((prev) => [...prev.filter((u) => u.id !== member.id), member]);
-            })
-            .leaving((member: PresenceMember) => {
-                setUsers((prev) => prev.filter((u) => u.id !== member.id));
-            });
-
-        return () => {
-            echo.leave('monitoring');
-            echo.disconnect();
-        };
-    }, []);
+    const { members, connectionStatus } = usePresence();
 
     return (
         <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -105,19 +71,19 @@ function MonitoringContent() {
                     Connecting...
                 </div>
             ) : isAuthenticated ? (
-                users.length === 0 ? (
+                members.length === 0 ? (
                     <div className="flex flex-1 items-center justify-center rounded-xl border border-sidebar-border/70 p-8 text-gray-500 dark:border-sidebar-border dark:text-gray-400">
                         No users online
                     </div>
                 ) : (
-                    <UserList users={users} />
+                    <UserList users={members} />
                 )
             ) : (
                 <div className="flex flex-1 items-center justify-center rounded-xl border border-sidebar-border/70 p-12 dark:border-sidebar-border">
                     <div className="text-center">
-                        <p className="text-5xl font-bold text-gray-900 dark:text-gray-100">{users.length}</p>
+                        <p className="text-5xl font-bold text-gray-900 dark:text-gray-100">{members.length}</p>
                         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            {users.length === 1 ? 'user' : 'users'} online
+                            {members.length === 1 ? 'user' : 'users'} online
                         </p>
                     </div>
                 </div>

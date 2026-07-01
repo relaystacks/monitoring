@@ -49,7 +49,7 @@ class MonitoringBroadcastTest extends TestCase
 
         $response = $this->actingAs($user)->post('/broadcasting/auth', [
             'socket_id' => 'test-socket-id',
-            'channel_name' => 'presence-monitoring',
+            'channel_name' => 'presence-online',
         ]);
 
         $response->assertOk();
@@ -65,7 +65,7 @@ class MonitoringBroadcastTest extends TestCase
     {
         $response = $this->post('/broadcasting/auth', [
             'socket_id' => 'test-socket-id',
-            'channel_name' => 'presence-monitoring',
+            'channel_name' => 'presence-online',
         ]);
 
         $response->assertOk();

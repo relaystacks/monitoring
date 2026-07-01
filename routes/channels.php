@@ -3,7 +3,7 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('monitoring', function (?User $user) {
+Broadcast::channel('online', function (?User $user) {
     if ($user) {
         return ['id' => $user->id, 'name' => $user->name];
     }

@@ -17,7 +17,8 @@ Route::prefix('{current_team}')
 Route::middleware(['auth'])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
     Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
-    Route::get('/monitoring', MonitoringController::class)->name('monitoring');
 });
+
+Route::get('/monitoring', MonitoringController::class)->name('monitoring');
 
 require __DIR__.'/settings.php';

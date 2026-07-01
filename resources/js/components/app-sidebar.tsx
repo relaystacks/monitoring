@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Activity, BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Activity, BookOpen, FolderGit2, LayoutGrid, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -23,6 +23,10 @@ export function AppSidebar() {
         ? dashboard(page.props.currentTeam.slug)
         : '/';
 
+    const teamMonitoringUrl = page.props.currentTeam
+        ? `/${page.props.currentTeam.slug}/monitoring`
+        : null;
+
     const mainNavItems: NavItem[] = [
         {
             title: 'Dashboard',
@@ -34,6 +38,15 @@ export function AppSidebar() {
             href: '/monitoring',
             icon: Activity,
         },
+        ...(teamMonitoringUrl
+            ? [
+                  {
+                      title: 'Team Monitoring',
+                      href: teamMonitoringUrl,
+                      icon: Users,
+                  },
+              ]
+            : []),
     ];
 
     const footerNavItems: NavItem[] = [

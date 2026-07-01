@@ -170,21 +170,15 @@ function resetInactivityTimer(): void {
 function logPageVisit(url: string, durationSeconds: number, status: string): void {
     if (!isAuthenticated || !url) return;
 
-    const data = JSON.stringify({ url, duration_seconds: durationSeconds, status });
-
-    if (typeof navigator.sendBeacon === 'function') {
-        navigator.sendBeacon('/activity-log', new Blob([data], { type: 'application/json' }));
-    } else {
-        fetch('/activity-log', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
-            },
-            body: data,
-            keepalive: true,
-        });
-    }
+    fetch('/activity-log', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+        },
+        body: JSON.stringify({ url, duration_seconds: durationSeconds, status }),
+        keepalive: true,
+    });
 }
 
 function trackPageChange(): void {

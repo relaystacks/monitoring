@@ -43,5 +43,6 @@ createInertiaApp({
 initializeTheme();
 
 // Start global presence tracking...
-const initialPage = JSON.parse(document.getElementById('app')?.dataset.page ?? '{}');
+const pageScript = document.querySelector('script[data-page="app"][type="application/json"]');
+const initialPage = pageScript?.textContent ? JSON.parse(pageScript.textContent) : {};
 initializePresence(initialPage?.props?.auth?.user?.id);

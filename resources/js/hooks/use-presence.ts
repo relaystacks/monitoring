@@ -76,6 +76,26 @@ function whisperActivityState(): void {
     presenceChannel?.whisper('activity-state', { state: activityState });
 }
 
+function createEchoInstance(): void {
+    echo = new Echo({
+        broadcaster: 'socket.io',
+        client: io,
+        host: import.meta.env.VITE_CONDUIT_IO_URL || `${window.location.protocol}//${window.location.hostname}:6001`,
+        withCredentials: true,
+    });
+
+    const socket = (echo.connector as any).socket;
+    socket.on('connect', () => setConnectionStatus('connected'));
+    socket.on('disconnect', () => setConnectionStatus('disconnected'));
+    socket.on('connect_error', () => setConnectionStatus('disconnected'));
+}
+
+function destroyEchoInstance(): void {
+    if (!echo) return;
+    echo.disconnect();
+    echo = null;
+}
+
 function joinChannel(): void {
     if (!echo || presenceChannel) return;
 
@@ -154,13 +174,20 @@ function resetInactivityTimer(): void {
         whisperActivityState();
         rebuildMembers(currentMembers.map(({ id, name }) => ({ id, name })));
 
+        if (isAuthenticated && currentPageUrl) {
+            logPageVisit(currentPageUrl, accumulatedActiveSeconds, 'inactive');
+        }
+
+        accumulatedActiveSeconds = 0;
         pageStartTime = Date.now();
 
         disconnectTimer = setTimeout(() => {
+            const inactiveSeconds = Math.round((Date.now() - pageStartTime) / 1000);
             if (isAuthenticated && currentPageUrl) {
-                logPageVisit(currentPageUrl, accumulatedActiveSeconds, 'disconnected');
-                accumulatedActiveSeconds = 0;
+                logPageVisit(currentPageUrl, inactiveSeconds, 'disconnected');
             }
+            accumulatedActiveSeconds = 0;
+            pageStartTime = 0;
             leaveChannel();
             setConnectionStatus('disconnected');
         }, DISCONNECT_TIMEOUT);
@@ -188,8 +215,11 @@ function trackPageChange(): void {
     if (currentPageUrl && pageStartTime > 0) {
         if (activityState === 'active') {
             accumulatedActiveSeconds += Math.round((now - pageStartTime) / 1000);
+            logPageVisit(currentPageUrl, accumulatedActiveSeconds, 'active');
+        } else {
+            const elapsedSeconds = Math.round((now - pageStartTime) / 1000);
+            logPageVisit(currentPageUrl, elapsedSeconds, 'inactive');
         }
-        logPageVisit(currentPageUrl, accumulatedActiveSeconds, activityState);
     }
 
     currentPageUrl = window.location.pathname;
@@ -206,6 +236,9 @@ function handleActivity(): void {
         activityState = 'active';
         if (selfId != null) {
             memberActivityStates.set(selfId, 'active');
+        }
+        if (!echo) {
+            createEchoInstance();
         }
         joinChannel();
         setConnectionStatus('connected');
@@ -230,17 +263,7 @@ export function initializePresence(userId?: number | string): void {
     selfId = userId ?? null;
     isAuthenticated = userId != null;
 
-    echo = new Echo({
-        broadcaster: 'socket.io',
-        client: io,
-        host: import.meta.env.VITE_CONDUIT_IO_URL || `${window.location.protocol}//${window.location.hostname}:6001`,
-        withCredentials: true,
-    });
-
-    const socket = (echo.connector as any).socket;
-    socket.on('connect', () => setConnectionStatus('connected'));
-    socket.on('disconnect', () => setConnectionStatus('disconnected'));
-    socket.on('connect_error', () => setConnectionStatus('disconnected'));
+    createEchoInstance();
 
     if (selfId != null) {
         memberUrls.set(selfId, window.location.pathname);
@@ -256,8 +279,44 @@ export function initializePresence(userId?: number | string): void {
     currentPageUrl = window.location.pathname;
     pageStartTime = Date.now();
 
-    router.on('navigate', () => {
-        trackPageChange();
+    router.on('navigate', (event) => {
+        const page = (event as CustomEvent<{ page: { props: { auth: { user?: { id: number | string } } } } }>).detail
+            ?.page;
+        const newUserId = page?.props?.auth?.user?.id ?? null;
+
+        if (newUserId !== selfId) {
+            if (isAuthenticated && currentPageUrl && pageStartTime > 0) {
+                if (activityState === 'active') {
+                    accumulatedActiveSeconds += Math.round((Date.now() - pageStartTime) / 1000);
+                    logPageVisit(currentPageUrl, accumulatedActiveSeconds, 'active');
+                } else {
+                    const elapsedSeconds = Math.round((Date.now() - pageStartTime) / 1000);
+                    logPageVisit(currentPageUrl, elapsedSeconds, activityState);
+                }
+            }
+
+            leaveChannel();
+            clearTimers();
+            destroyEchoInstance();
+
+            selfId = newUserId;
+            isAuthenticated = newUserId != null;
+            activityState = 'active';
+
+            createEchoInstance();
+
+            if (selfId != null) {
+                memberUrls.set(selfId, window.location.pathname);
+            }
+            joinChannel();
+            resetInactivityTimer();
+
+            currentPageUrl = window.location.pathname;
+            pageStartTime = Date.now();
+            accumulatedActiveSeconds = 0;
+        } else {
+            trackPageChange();
+        }
 
         if (selfId != null) {
             memberUrls.set(selfId, window.location.pathname);
@@ -269,9 +328,13 @@ export function initializePresence(userId?: number | string): void {
         if (isAuthenticated && currentPageUrl && pageStartTime > 0) {
             if (activityState === 'active') {
                 accumulatedActiveSeconds += Math.round((Date.now() - pageStartTime) / 1000);
+                const status = presenceChannel ? 'active' : 'disconnected';
+                logPageVisit(currentPageUrl, accumulatedActiveSeconds, status);
+            } else {
+                const elapsedSeconds = Math.round((Date.now() - pageStartTime) / 1000);
+                const status = presenceChannel ? activityState : 'disconnected';
+                logPageVisit(currentPageUrl, elapsedSeconds, status);
             }
-            const status = presenceChannel ? activityState : 'disconnected';
-            logPageVisit(currentPageUrl, accumulatedActiveSeconds, status);
         }
     });
 }

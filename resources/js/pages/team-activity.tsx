@@ -1,4 +1,6 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePoll } from '@inertiajs/react';
+import { usePresence } from '@/hooks/use-presence';
+import { useEffect, useState } from 'react';
 
 type Activity = {
     id: number;
@@ -52,7 +54,28 @@ const statusConfig = {
     disconnected: { label: 'Disconnected', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 } as const;
 
+function useElapsedSeconds(key: string | undefined): number {
+    const [elapsed, setElapsed] = useState(0);
+
+    useEffect(() => {
+        setElapsed(0);
+        if (!key) return;
+
+        const interval = setInterval(() => setElapsed((s) => s + 1), 1000);
+        return () => clearInterval(interval);
+    }, [key]);
+
+    return elapsed;
+}
+
 export default function TeamActivity({ targetUser, activities, teamName, teamSlug }: Props) {
+    usePoll(10_000, { only: ['activities'] }, { mode: 'rest' });
+
+    const { members } = usePresence();
+    const liveMember = members.find((m) => m.id === targetUser.id);
+    const elapsed = useElapsedSeconds(liveMember?.currentUrl);
+    const showLiveRow = liveMember && activities.current_page === 1;
+
     return (
         <>
             <Head title={`${targetUser.name} - Activity`} />
@@ -74,7 +97,7 @@ export default function TeamActivity({ targetUser, activities, teamName, teamSlu
                     </Link>
                 </div>
 
-                {activities.data.length === 0 ? (
+                {activities.data.length === 0 && !showLiveRow ? (
                     <div className="flex flex-1 items-center justify-center rounded-xl border border-sidebar-border/70 p-8 text-gray-500 dark:border-sidebar-border dark:text-gray-400">
                         No activity recorded yet
                     </div>
@@ -91,6 +114,28 @@ export default function TeamActivity({ targetUser, activities, teamName, teamSlu
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-sidebar-border/70 dark:divide-sidebar-border">
+                                    {showLiveRow && (
+                                        <tr className="bg-green-50/50 dark:bg-green-950/20">
+                                            <td className="px-5 py-3 font-mono text-gray-900 dark:text-gray-100">
+                                                <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-green-500" />
+                                                {liveMember.currentUrl ?? '—'}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[liveMember.activityState]?.className ?? statusConfig.active.className}`}>
+                                                    {statusConfig[liveMember.activityState]?.label ?? 'Active'}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3 text-gray-600 dark:text-gray-400">
+                                                {formatDuration(elapsed)}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                                    Live
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    )}
                                     {activities.data.map((activity) => (
                                         <tr key={activity.id}>
                                             <td className="px-5 py-3 font-mono text-gray-900 dark:text-gray-100">

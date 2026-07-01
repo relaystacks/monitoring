@@ -14,11 +14,12 @@ use Illuminate\Support\Carbon;
  * @property int $user_id
  * @property string $url
  * @property int|null $duration_seconds
+ * @property string $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
  */
-#[Fillable(['user_id', 'url', 'duration_seconds'])]
+#[Fillable(['user_id', 'url', 'duration_seconds', 'status'])]
 class ActivityLog extends Model
 {
     /** @use HasFactory<ActivityLogFactory> */

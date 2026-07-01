@@ -40,6 +40,7 @@ let lastActivityTime = 0;
 let isAuthenticated = false;
 let pageStartTime = 0;
 let currentPageUrl = '';
+let accumulatedActiveSeconds = 0;
 
 const INACTIVITY_TIMEOUT = 30_000;
 const DISCONNECT_TIMEOUT = 150_000;
@@ -142,6 +143,10 @@ function resetInactivityTimer(): void {
     clearTimers();
 
     inactivityTimer = setTimeout(() => {
+        if (pageStartTime > 0) {
+            accumulatedActiveSeconds += Math.round((Date.now() - pageStartTime) / 1000);
+        }
+
         activityState = 'inactive';
         if (selfId != null) {
             memberActivityStates.set(selfId, 'inactive');
@@ -149,18 +154,23 @@ function resetInactivityTimer(): void {
         whisperActivityState();
         rebuildMembers(currentMembers.map(({ id, name }) => ({ id, name })));
 
+        pageStartTime = Date.now();
+
         disconnectTimer = setTimeout(() => {
-            activityState = 'active';
+            if (isAuthenticated && currentPageUrl) {
+                logPageVisit(currentPageUrl, accumulatedActiveSeconds, 'disconnected');
+                accumulatedActiveSeconds = 0;
+            }
             leaveChannel();
             setConnectionStatus('disconnected');
         }, DISCONNECT_TIMEOUT);
     }, INACTIVITY_TIMEOUT);
 }
 
-function logPageVisit(url: string, durationSeconds: number): void {
+function logPageVisit(url: string, durationSeconds: number, status: string): void {
     if (!isAuthenticated || !url) return;
 
-    const data = JSON.stringify({ url, duration_seconds: durationSeconds });
+    const data = JSON.stringify({ url, duration_seconds: durationSeconds, status });
 
     if (typeof navigator.sendBeacon === 'function') {
         navigator.sendBeacon('/activity-log', new Blob([data], { type: 'application/json' }));
@@ -182,12 +192,15 @@ function trackPageChange(): void {
 
     const now = Date.now();
     if (currentPageUrl && pageStartTime > 0) {
-        const durationSeconds = Math.round((now - pageStartTime) / 1000);
-        logPageVisit(currentPageUrl, durationSeconds);
+        if (activityState === 'active') {
+            accumulatedActiveSeconds += Math.round((now - pageStartTime) / 1000);
+        }
+        logPageVisit(currentPageUrl, accumulatedActiveSeconds, activityState);
     }
 
     currentPageUrl = window.location.pathname;
     pageStartTime = now;
+    accumulatedActiveSeconds = 0;
 }
 
 function handleActivity(): void {
@@ -202,6 +215,8 @@ function handleActivity(): void {
         }
         joinChannel();
         setConnectionStatus('connected');
+        pageStartTime = now;
+        accumulatedActiveSeconds = 0;
     } else if (activityState === 'inactive') {
         activityState = 'active';
         if (selfId != null) {
@@ -209,6 +224,7 @@ function handleActivity(): void {
         }
         whisperActivityState();
         rebuildMembers(currentMembers.map(({ id, name }) => ({ id, name })));
+        pageStartTime = now;
     }
 
     resetInactivityTimer();
@@ -257,8 +273,11 @@ export function initializePresence(userId?: number | string): void {
 
     window.addEventListener('beforeunload', () => {
         if (isAuthenticated && currentPageUrl && pageStartTime > 0) {
-            const durationSeconds = Math.round((Date.now() - pageStartTime) / 1000);
-            logPageVisit(currentPageUrl, durationSeconds);
+            if (activityState === 'active') {
+                accumulatedActiveSeconds += Math.round((Date.now() - pageStartTime) / 1000);
+            }
+            const status = presenceChannel ? activityState : 'disconnected';
+            logPageVisit(currentPageUrl, accumulatedActiveSeconds, status);
         }
     });
 }

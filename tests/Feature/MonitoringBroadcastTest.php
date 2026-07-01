@@ -74,7 +74,7 @@ class MonitoringBroadcastTest extends TestCase
 
         $this->assertArrayHasKey('channel_data', $data);
         $this->assertStringStartsWith('guest-', (string) $data['channel_data']['user_id']);
-        $this->assertIsNumeric($data['channel_data']['user_info']['name']);
+        $this->assertStringStartsWith('Guest ', $data['channel_data']['user_info']['name']);
     }
 
     public function test_guest_cannot_auth_private_channel(): void

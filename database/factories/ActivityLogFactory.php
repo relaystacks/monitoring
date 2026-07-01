@@ -22,6 +22,7 @@ class ActivityLogFactory extends Factory
             'user_id' => User::factory(),
             'url' => fake()->randomElement(['/', '/dashboard', '/settings/profile', '/monitoring']),
             'duration_seconds' => fake()->numberBetween(1, 300),
+            'status' => fake()->randomElement(['active', 'inactive', 'disconnected']),
         ];
     }
 

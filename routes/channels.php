@@ -10,5 +10,5 @@ Broadcast::channel('online', function (?User $user) {
 
     $guestId = random_int(100000, 999999);
 
-    return ['id' => 'guest-'.$guestId, 'name' => (string) $guestId];
+    return ['id' => 'guest-'.$guestId, 'name' => 'Guest '.$guestId];
 });

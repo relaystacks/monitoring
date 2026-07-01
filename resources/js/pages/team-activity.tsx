@@ -4,6 +4,7 @@ type Activity = {
     id: number;
     url: string;
     duration_seconds: number | null;
+    status: 'active' | 'inactive' | 'disconnected';
     created_at: string;
 };
 
@@ -45,6 +46,12 @@ function formatTimestamp(timestamp: string): string {
     });
 }
 
+const statusConfig = {
+    active: { label: 'Active', className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+    inactive: { label: 'Inactive', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+    disconnected: { label: 'Disconnected', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+} as const;
+
 export default function TeamActivity({ targetUser, activities, teamName, teamSlug }: Props) {
     return (
         <>
@@ -78,6 +85,7 @@ export default function TeamActivity({ targetUser, activities, teamName, teamSlu
                                 <thead className="border-b border-sidebar-border/70 bg-gray-50 dark:border-sidebar-border dark:bg-gray-900">
                                     <tr>
                                         <th className="px-5 py-3 font-medium text-gray-600 dark:text-gray-400">URL</th>
+                                        <th className="px-5 py-3 font-medium text-gray-600 dark:text-gray-400">Status</th>
                                         <th className="px-5 py-3 font-medium text-gray-600 dark:text-gray-400">Duration</th>
                                         <th className="px-5 py-3 font-medium text-gray-600 dark:text-gray-400">Visited At</th>
                                     </tr>
@@ -87,6 +95,11 @@ export default function TeamActivity({ targetUser, activities, teamName, teamSlu
                                         <tr key={activity.id}>
                                             <td className="px-5 py-3 font-mono text-gray-900 dark:text-gray-100">
                                                 {activity.url}
+                                            </td>
+                                            <td className="px-5 py-3">
+                                                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[activity.status]?.className ?? statusConfig.active.className}`}>
+                                                    {statusConfig[activity.status]?.label ?? 'Active'}
+                                                </span>
                                             </td>
                                             <td className="px-5 py-3 text-gray-600 dark:text-gray-400">
                                                 {formatDuration(activity.duration_seconds)}

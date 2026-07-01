@@ -114,4 +114,53 @@ class ActivityLogTest extends TestCase
 
         $this->assertDatabaseCount('activity_logs', 0);
     }
+
+    public function test_activity_log_can_store_status(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/activity-log', [
+            'url' => '/dashboard',
+            'duration_seconds' => 30,
+            'status' => 'inactive',
+        ]);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'url' => '/dashboard',
+            'status' => 'inactive',
+        ]);
+    }
+
+    public function test_activity_log_defaults_status_to_active(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/activity-log', [
+            'url' => '/dashboard',
+        ]);
+
+        $response->assertCreated();
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $user->id,
+            'url' => '/dashboard',
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_activity_log_rejects_invalid_status(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/activity-log', [
+            'url' => '/dashboard',
+            'status' => 'invalid',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['status']);
+    }
 }

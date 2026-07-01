@@ -1,4 +1,4 @@
-import { Form, Head, router } from '@inertiajs/react';
+import { Form, Head, Link, router } from '@inertiajs/react';
 import { ChevronDown, Mail, UserPlus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import CancelInvitationModal from '@/components/cancel-invitation-modal';
@@ -196,6 +196,12 @@ export default function TeamEdit({
                                 </div>
 
                                 <div className="flex items-center gap-2">
+                                    <Link
+                                        href={`/${team.slug}/activity/${member.id}`}
+                                        className="rounded-lg border border-sidebar-border/70 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-sidebar-border dark:text-gray-300 dark:hover:bg-gray-800"
+                                    >
+                                        Activity
+                                    </Link>
                                     {member.role !== 'owner' &&
                                     permissions.canUpdateMember ? (
                                         <DropdownMenu>

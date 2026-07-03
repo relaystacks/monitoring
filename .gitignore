@@ -30,3 +30,4 @@ yarn-error.log
 /node/node_modules
 /build.sh
 /deploy.sh
+/extractor.php

@@ -5,7 +5,7 @@
   "description": "Node.js server for conduit monitoring demo",
   "main": "app.js",
   "dependencies": {
-    "@relaystack/conduit-echo": "file:../../relaystack/packages/conduit-echo",
+    "@relaystacks/conduit-echo": "^1.0.0",
     "express": "^4.19.2"
   }
 }

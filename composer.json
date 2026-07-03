@@ -16,8 +16,7 @@
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "relaystack/laravel-conduit": "@dev",
-        "relaystack/conduit-php": "@dev"
+        "relaystacks/laravel-conduit": "^1.0.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -101,8 +100,7 @@
         "laravel": {
             "dont-discover": [],
             "installer": {
-                "post-create-project": [
-                ]
+                "post-create-project": []
             }
         }
     },
@@ -115,18 +113,6 @@
             "php-http/discovery": true
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "/var/www/packages/conduit-php",
-            "options": { "symlink": true }
-        },
-        {
-            "type": "path",
-            "url": "/var/www/packages/laravel-conduit",
-            "options": { "symlink": true }
-        }
-    ],
     "minimum-stability": "stable",
     "prefer-stable": true
 }

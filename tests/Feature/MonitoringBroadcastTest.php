@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use RelayStack\Conduit\TransportInterface;
-use RelayStack\LaravelConduit\Broadcasters\ConduitBroadcaster;
+use RelayStacks\Conduit\TransportInterface;
+use RelayStacks\LaravelConduit\Broadcasters\ConduitBroadcaster;
 use Tests\TestCase;
 
 class MonitoringBroadcastTest extends TestCase

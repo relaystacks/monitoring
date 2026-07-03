@@ -2,7 +2,7 @@
 
 const http = require('http');
 const express = require('express');
-const { Server } = require('@relaystack/conduit-echo');
+const { Server } = require('@relaystacks/conduit-echo');
 
 const app = express();
 const httpServer = http.createServer(app);

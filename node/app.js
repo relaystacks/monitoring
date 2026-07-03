@@ -80,9 +80,6 @@ function testAuthReachability() {
         hostname: endpoint.hostname,
         port: endpoint.port || (isHttps ? '443' : '80'),
         path: endpoint.pathname,
-        protocolWarning: isHttps
-            ? 'AuthService uses http module but endpoint is https — auth calls will fail unless patched.'
-            : null,
         reachable: false,
         test: null,
     };

@@ -238,6 +238,7 @@ export default function Health({ config, ipc, authTest, nodeHealth }: Props) {
         try {
             const { io } = await import('socket.io-client');
             const start = performance.now();
+            let resolved = false;
 
             const socket = io(host, {
                 withCredentials: true,
@@ -252,6 +253,8 @@ export default function Health({ config, ipc, authTest, nodeHealth }: Props) {
             };
 
             socket.on('connect', () => {
+                if (resolved) return;
+                resolved = true;
                 const latencyMs = Math.round(performance.now() - start);
                 setSocketResult({
                     status: 'pass',
@@ -268,6 +271,8 @@ export default function Health({ config, ipc, authTest, nodeHealth }: Props) {
             });
 
             socket.on('connect_error', (err) => {
+                if (resolved) return;
+                resolved = true;
                 const latencyMs = Math.round(performance.now() - start);
                 setSocketResult({
                     status: 'fail',
@@ -280,7 +285,8 @@ export default function Health({ config, ipc, authTest, nodeHealth }: Props) {
             });
 
             setTimeout(() => {
-                if (socket.connected) return;
+                if (resolved) return;
+                resolved = true;
                 setSocketResult({
                     status: 'fail',
                     title: 'Socket.IO Connection',

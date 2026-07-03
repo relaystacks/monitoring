@@ -45,4 +45,4 @@ initializeTheme();
 // Start global presence tracking...
 const pageScript = document.querySelector('script[data-page="app"][type="application/json"]');
 const initialPage = pageScript?.textContent ? JSON.parse(pageScript.textContent) : {};
-initializePresence(initialPage?.props?.auth?.user?.id);
+initializePresence(initialPage?.props?.auth?.user?.id, initialPage?.props?.conduitUrl);

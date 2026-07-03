@@ -7,10 +7,11 @@ return [
     'connections' => [
 
         'conduit' => [
-            'driver'      => 'conduit',
+            'driver' => 'conduit',
             'socket_path' => env('CONDUIT_SOCKET_PATH', '/tmp/laravel.sock'),
-            'secret'      => env('CONDUIT_SECRET', null),
-            'timeout'     => env('CONDUIT_TIMEOUT', 2),
+            'secret' => env('CONDUIT_SECRET', null),
+            'timeout' => env('CONDUIT_TIMEOUT', 2),
+            'url' => env('CONDUIT_IO_URL'),
         ],
 
         'log' => [

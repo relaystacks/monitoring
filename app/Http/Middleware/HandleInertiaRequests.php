@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'conduitUrl' => config('broadcasting.connections.conduit.url'),
             'auth' => [
                 'user' => $user,
             ],

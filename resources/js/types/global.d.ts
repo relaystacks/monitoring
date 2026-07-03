@@ -12,6 +12,7 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
+            conduitUrl: string | null;
             auth: Auth;
             sidebarOpen: boolean;
             currentTeam: Team | null;

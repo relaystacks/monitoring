@@ -34,6 +34,7 @@ let echo: Echo | null = null;
 let presenceChannel: ReturnType<Echo['join']> | null = null;
 let selfId: number | string | null = null;
 let activityState: ActivityState = 'active';
+let conduitUrl: string | null = null;
 let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
 let disconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let lastActivityTime = 0;
@@ -80,7 +81,7 @@ function createEchoInstance(): void {
     echo = new Echo({
         broadcaster: 'socket.io',
         client: io,
-        host: import.meta.env.VITE_CONDUIT_IO_URL || `${window.location.protocol}//${window.location.hostname}:6001`,
+        host: conduitUrl || `${window.location.protocol}//${window.location.hostname}:6001`,
         withCredentials: true,
     });
 
@@ -257,11 +258,12 @@ function handleActivity(): void {
     resetInactivityTimer();
 }
 
-export function initializePresence(userId?: number | string): void {
+export function initializePresence(userId?: number | string, echoUrl?: string | null): void {
     if (typeof window === 'undefined') return;
 
     selfId = userId ?? null;
     isAuthenticated = userId != null;
+    conduitUrl = echoUrl ?? null;
 
     createEchoInstance();
 

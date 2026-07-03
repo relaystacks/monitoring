@@ -31,3 +31,4 @@ yarn-error.log
 /build.sh
 /deploy.sh
 /extractor.php
+/deploy.zip

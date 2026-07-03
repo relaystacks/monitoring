@@ -28,3 +28,5 @@ yarn-error.log
 /.vscode
 /.zed
 /node/node_modules
+/build.sh
+/deploy.sh

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\TeamActivityController;
 use App\Http\Controllers\TeamMonitoringController;
@@ -26,5 +27,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/monitoring', MonitoringController::class)->name('monitoring');
+
+Route::get('/health', HealthController::class)->middleware('auth')->name('health');
 
 require __DIR__.'/settings.php';
